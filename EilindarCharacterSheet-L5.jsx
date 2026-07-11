@@ -1568,18 +1568,31 @@ export default function CharacterSheet() {
                 <tbody>
                   {c.consumables.map((it, i) => (
                     <tr key={it.id} style={{ background: i % 2 === 0 ? T.bgCard : T.bgParch, borderBottom: `1px solid ${T.borderLight}` }}>
-                      <td style={{ padding: "6px 8px", fontWeight: 700, width: 240 }}>{it.name}</td>
-                      <td style={{ padding: "6px 8px", width: 150, textAlign: "center" }}>
+                      <td style={{ padding: "6px 8px", width: 240 }}>
+                        <input value={it.name} placeholder="название расходника"
+                          onChange={(e) => updateItem("consumables", it.id, { name: e.target.value })}
+                          style={{ width: "100%", background: "transparent", border: "none", fontFamily: fontSerif, fontSize: 13, fontWeight: 700, color: T.ink, padding: 0 }} />
+                      </td>
+                      <td style={{ padding: "6px 8px", width: 170, textAlign: "center" }}>
                         <div style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
                           <IconBtn onClick={() => bumpCons(it.id, -1)} title="Потратить">−</IconBtn>
-                          <span style={{
-                            minWidth: 54, fontFamily: fontDisplay, fontWeight: 700, fontSize: 14,
-                            color: it.cur === 0 ? "#a33" : T.rust,
-                          }}>{it.cur} / {it.max}</span>
+                          <input type="number" value={it.cur}
+                            onChange={(e) => updateItem("consumables", it.id, { cur: Number(e.target.value) || 0 })}
+                            title="Текущий заряд"
+                            style={{ width: 42, textAlign: "center", fontFamily: fontDisplay, fontWeight: 700, fontSize: 14, color: Number(it.cur) === 0 ? "#a33" : T.rust, background: T.bgCard, border: `1px solid ${T.borderLight}`, borderRadius: 2, padding: "2px 0" }} />
+                          <span style={{ color: T.muted }}>/</span>
+                          <input type="number" value={it.max}
+                            onChange={(e) => updateItem("consumables", it.id, { max: Number(e.target.value) || 0 })}
+                            title="Максимум зарядов"
+                            style={{ width: 42, textAlign: "center", fontFamily: fontDisplay, fontWeight: 700, fontSize: 14, color: T.muted, background: T.bgCard, border: `1px solid ${T.borderLight}`, borderRadius: 2, padding: "2px 0" }} />
                           <IconBtn onClick={() => bumpCons(it.id, +1)} title="Вернуть" color={T.forest}>+</IconBtn>
                         </div>
                       </td>
-                      <td style={{ padding: "6px 8px", fontSize: 11, color: T.muted, fontStyle: "italic" }}>{it.note}</td>
+                      <td style={{ padding: "6px 8px" }}>
+                        <input value={it.note} placeholder="примечание"
+                          onChange={(e) => updateItem("consumables", it.id, { note: e.target.value })}
+                          style={{ width: "100%", background: "transparent", border: "none", fontFamily: fontSerif, fontSize: 11, fontStyle: "italic", color: T.muted, padding: 0 }} />
+                      </td>
                       <td style={{ padding: 2, width: 28, textAlign: "center" }}>
                         <IconBtn onClick={() => removeItem("consumables", it.id)} title="Удалить" color="#a33">×</IconBtn>
                       </td>
