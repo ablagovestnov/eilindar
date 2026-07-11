@@ -1,0 +1,62 @@
+name: Deploy to VPS
+
+# Пока запускается только вручную (Actions → Deploy to VPS → Run workflow).
+# Когда добавите секреты и настроите сервер (см. SETUP-VPS.md), можно включить
+# автодеплой на пуш — раскомментируйте блок push ниже.
+on:
+  workflow_dispatch:
+  # push:
+  #   branches: [claude/eilindar-character-handoff-h1btoi]
+
+concurrency:
+  group: vps-deploy
+  cancel-in-progress: true
+
+# Пути на сервере. Меняются здесь (не секреты — просто расположение).
+env:
+  WEB_ROOT: /var/www/eilindar        # куда кладём собранную статику (Caddy отдаёт отсюда)
+  APP_DIR: /opt/eilindar-server      # куда кладём Node-бэкенд
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Build frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          PORT="${{ secrets.VPS_PORT }}"; PORT="${PORT:-22}"
+          ssh-keyscan -p "$PORT" -H "${{ secrets.VPS_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Deploy frontend (rsync dist/)
+        run: |
+          PORT="${{ secrets.VPS_PORT }}"; PORT="${PORT:-22}"
+          rsync -az --delete -e "ssh -i ~/.ssh/deploy_key -p $PORT" \
+            dist/ "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:$WEB_ROOT/"
+
+      - name: Deploy backend (rsync server/, сохраняя data/ и .env)
+        run: |
+          PORT="${{ secrets.VPS_PORT }}"; PORT="${PORT:-22}"
+          rsync -az --delete \
+            --exclude node_modules --exclude data --exclude .env \
+            -e "ssh -i ~/.ssh/deploy_key -p $PORT" \
+            server/ "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:$APP_DIR/"
+
+      - name: Install deps & restart service
+        run: |
+          PORT="${{ secrets.VPS_PORT }}"; PORT="${PORT:-22}"
+          ssh -i ~/.ssh/deploy_key -p $PORT "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
+            "cd $APP_DIR && npm ci --omit=dev && sudo systemctl restart eilindar"
