@@ -50,6 +50,21 @@ ssh-keygen -t ed25519 -f deploy_key -C "gh-actions-eilindar"
 
 ## 3. Разовая подготовка сервера
 
+### Вариант А — одной командой (Ubuntu/Debian)
+
+На сервере, от root, из склонированного репозитория:
+```bash
+sudo bash deploy/bootstrap.sh --user deploy \
+     --domain eilindar.example.com \
+     --pubkey "$(cat deploy_key.pub)"
+```
+Скрипт сам поставит Node, создаст каталоги, сгенерирует `.env` со случайным
+`API_TOKEN` (и напечатает его в конце), поставит systemd-сервис, правило sudo для
+рестарта и Caddy с HTTPS. `--domain` и `--pubkey` необязательны. Идемпотентен:
+повторный запуск не перетирает существующий `.env`.
+
+### Вариант Б — вручную
+
 ```bash
 # Node 20 (через nodesource или nvm) — проверьте: node -v
 # отдельный пользователь для бэкенда
