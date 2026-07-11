@@ -4,7 +4,7 @@
   "description": "Интерактивный лист персонажа Эйлиндар Вэйн (Pathfinder 1e, Shattered Star)",
   "private": true,
   "scripts": {
-    "build": "esbuild web/main.jsx --bundle --loader:.jsx=jsx --minify --define:process.env.NODE_ENV='\"production\"' --outfile=docs/app.js",
+    "build": "node build.mjs",
     "check": "esbuild EilindarCharacterSheet-L5.jsx --loader:.jsx=jsx --bundle --external:react --outfile=/dev/null"
   },
   "devDependencies": {
