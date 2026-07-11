@@ -1,0 +1,17 @@
+[Unit]
+Description=Eilindar character sheet backend (Hono + better-sqlite3)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/eilindar-server
+# Читаем настройки из .env (PORT, DB_PATH, API_TOKEN, CORS_ORIGIN)
+EnvironmentFile=/opt/eilindar-server/.env
+ExecStart=/usr/bin/node index.mjs
+Restart=on-failure
+RestartSec=3
+User=eilindar
+Group=eilindar
+
+[Install]
+WantedBy=multi-user.target

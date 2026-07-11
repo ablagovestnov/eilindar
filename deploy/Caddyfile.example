@@ -1,0 +1,19 @@
+# Пример конфигурации Caddy: отдаёт статику и проксирует /api на Node-бэкенд.
+# Caddy сам получает и продлевает HTTPS-сертификат. Замените домен на свой.
+# Положить в /etc/caddy/Caddyfile, затем: sudo systemctl reload caddy
+
+eilindar.example.com {
+    encode gzip
+
+    # API → Node-бэкенд (тот же домен, поэтому CORS не нужен)
+    handle /api/* {
+        reverse_proxy localhost:8787
+    }
+
+    # Всё остальное — статика SPA
+    handle {
+        root * /var/www/eilindar
+        try_files {path} /index.html
+        file_server
+    }
+}
